@@ -19,13 +19,14 @@
                 </div>
               </q-card-section>
               <q-card-section>
-                <q-form class="q-px-sm q-pt-xl">
+                <q-form class="q-px-sm q-pt-xl" @submit.prevent="handleLogin">
                   <q-input
                     square
                     clearable
                     filled
                     v-model="username"
                     label="Username"
+                    autocompleted="username"
                   >
                     <template v-slot:prepend>
                       <q-icon name="person" />
@@ -38,22 +39,22 @@
                     v-model="password"
                     type="password"
                     label="Password"
+                    autocompleted="current-password"
                   >
                     <template v-slot:prepend>
                       <q-icon name="lock" />
                     </template>
                   </q-input>
+                  <q-btn
+                    unelevated
+                    size="lg"
+                    color="purple-4"
+                    class="full-width text-white"
+                    label="Sign In"
+                    type="submit"
+                  />
                 </q-form>
               </q-card-section>
-              <q-card-actions class="q-px-lg">
-                <q-btn
-                  unelevated
-                  size="lg"
-                  color="purple-4"
-                  class="full-width text-white"
-                  label="Sign In"
-                />
-              </q-card-actions>
               <q-card-section class="text-center q-pa-sm">
                 <p class="text-grey-6">Forgot your password?</p>
               </q-card-section>
@@ -67,21 +68,35 @@
 
 <script>
 import { ref } from "vue";
-import { useAuthStore } from "stores/authStore";
+import { useAuthStore } from "src/stores/authStore";
+import { useRouter } from "vue-router";
 
 export default {
   setup() {
     const username = ref("");
     const password = ref("");
+    const router = useRouter();
     const authStore = useAuthStore();
 
     const handleLogin = async () => {
       try {
         await authStore.login(username.value, password.value);
-        alert(`Welcome, ${authStore.user.role}!`);
-        // Redirect or perform actions based on role
+        switch (authStore.user.role) {
+          case "Doctor":
+            router.push("/doctor");
+            break;
+          case "Secretary":
+            router.push("/secretary");
+            break;
+          case "Patient":
+            router.push("/patient");
+            break;
+          default:
+            router.push("/"); // Redirect to home if no specific role
+        }
       } catch (error) {
-        alert(error.message);
+        console.error("Login Error:", error.message);
+        alert(error.message); // Consider using QNotify for better user experience
       }
     };
 

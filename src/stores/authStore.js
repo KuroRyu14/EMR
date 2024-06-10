@@ -1,26 +1,35 @@
-// authStore.js
+// src/stores/authStore.js
 import { defineStore } from "pinia";
 
-export const useAuthStore = defineStore("auth", {
+export const useAuthStore = defineStore("authStore", {
   state: () => ({
+    user: null,
     isLoggedIn: false,
-    userData: null,
   }),
-  getters: {
-    isAuthenticated(state) {
-      return state.isLoggedIn;
-    },
-  },
   actions: {
-    login(userData) {
-      this.isLoggedIn = true;
-      this.userData = userData;
-      // Here, you might also want to store a token or other data in localStorage
+    login(username, password) {
+      // Dummy logic to simulate login
+      const users = {
+        doctor: { username: "doctor", role: "Doctor", password: "doc123" },
+        secretary: {
+          username: "secretary",
+          role: "Secretary",
+          password: "sec123",
+        },
+        client: { username: "client", role: "Client", password: "cli123" },
+      };
+
+      const user = users[username];
+      if (user && user.password === password) {
+        this.user = user;
+        this.isLoggedIn = true;
+      } else {
+        throw new Error("Invalid credentials");
+      }
     },
     logout() {
+      this.user = null;
       this.isLoggedIn = false;
-      this.userData = null;
-      // Don't forget to clear any stored tokens or data in localStorage
     },
   },
 });

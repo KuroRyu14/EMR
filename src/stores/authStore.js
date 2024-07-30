@@ -16,7 +16,11 @@ export const useAuthStore = defineStore("authStore", {
           role: "Secretary",
           password: "sec123",
         },
-        client: { username: "client", role: "Client", password: "cli123" },
+        patient: {
+          username: "patient",
+          role: "Patient",
+          password: "123",
+        },
       };
 
       const user = users[username];

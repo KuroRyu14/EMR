@@ -11,12 +11,6 @@
                 <h4 class="text-center text-h5 text-white q-my-md">
                   Electronic Medical Record
                 </h4>
-                <div
-                  class="absolute-bottom-right q-pr-md"
-                  style="transform: translateY(50%)"
-                >
-                  <q-btn fab icon="add" color="purple-4" />
-                </div>
               </q-card-section>
               <q-card-section>
                 <q-form class="q-px-sm q-pt-xl" @submit.prevent="handleLogin">
@@ -26,7 +20,8 @@
                     filled
                     v-model="username"
                     label="Username"
-                    autocompleted="username"
+                    autocomplete="username"
+                    :rules="[(val) => !!val || 'Username is required']"
                   >
                     <template v-slot:prepend>
                       <q-icon name="person" />
@@ -39,7 +34,8 @@
                     v-model="password"
                     type="password"
                     label="Password"
-                    autocompleted="current-password"
+                    autocomplete="current-password"
+                    :rules="[(val) => !!val || 'Password is required']"
                   >
                     <template v-slot:prepend>
                       <q-icon name="lock" />
@@ -52,11 +48,17 @@
                     class="full-width text-white"
                     label="Sign In"
                     type="submit"
+                    :loading="loading"
+                    :disable="loading"
                   />
                 </q-form>
               </q-card-section>
               <q-card-section class="text-center q-pa-sm">
-                <p class="text-grey-6">Forgot your password?</p>
+                <q-btn
+                  flat
+                  label="Forgot your password?"
+                  @click="forgotPassword"
+                />
               </q-card-section>
             </q-card>
           </div>
@@ -70,17 +72,37 @@
 import { ref } from "vue";
 import { useAuthStore } from "src/stores/authStore";
 import { useRouter } from "vue-router";
+import { useQuasar } from "quasar";
 
 export default {
   setup() {
     const username = ref("");
     const password = ref("");
+    const loading = ref(false);
     const router = useRouter();
     const authStore = useAuthStore();
+    const $q = useQuasar();
 
     const handleLogin = async () => {
+      if (!username.value || !password.value) {
+        $q.notify({
+          color: "negative",
+          position: "top",
+          message: "Username and Password are required",
+          icon: "report_problem",
+        });
+        return;
+      }
+
+      loading.value = true;
       try {
         await authStore.login(username.value, password.value);
+        $q.notify({
+          color: "positive",
+          position: "top",
+          message: "Login successful!",
+          icon: "thumb_up",
+        });
         switch (authStore.user.role) {
           case "Doctor":
             router.push("/doctor");
@@ -96,11 +118,27 @@ export default {
         }
       } catch (error) {
         console.error("Login Error:", error.message);
-        alert(error.message); // Consider using QNotify for better user experience
+        $q.notify({
+          color: "negative",
+          position: "top",
+          message: error.message,
+          icon: "error",
+        });
+      } finally {
+        loading.value = false;
       }
     };
 
-    return { username, password, handleLogin };
+    const forgotPassword = () => {
+      $q.notify({
+        color: "info",
+        position: "top",
+        message: "Please contact support for password recovery.",
+        icon: "info",
+      });
+    };
+
+    return { username, password, handleLogin, forgotPassword, loading };
   },
 };
 </script>
